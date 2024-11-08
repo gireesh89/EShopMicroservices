@@ -1,5 +1,3 @@
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 //Add services in the container
@@ -9,6 +7,7 @@ builder.Services.AddMediatR(config =>
 {
     config.RegisterServicesFromAssembly(typeof(Program).Assembly);
     config.AddOpenBehavior(typeof(ValidationBehaviors<,>));
+    config.AddOpenBehavior(typeof(LoggingBehavior<,>));
 });
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 builder.Services.AddMarten(config =>
@@ -17,6 +16,8 @@ builder.Services.AddMarten(config =>
 }).UseLightweightSessions();
 
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
+if(builder.Environment.IsDevelopment())
+    builder.Services.InitializeMartenWith<CatalogInitialData>();
 
 var app = builder.Build();
 
