@@ -6,17 +6,18 @@ namespace Catalog.API.Products.GetProductById
 
     public record GetProductByIdResult(Product Product);
     internal class GetProductByIdQueryHandler
-        (IDocumentSession session, ILogger<GetProductByIdQueryHandler> logger) 
+        (IDocumentSession session) 
         :IQueryHandler<GetProductByIdQuery, GetProductByIdResult>
     {
         public async Task<GetProductByIdResult> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
-        {
-            logger.LogInformation("GetProductByIdQueryHandler is called with {@Query}", query);
+        {          
 
             var product=await session.LoadAsync<Product>(query.Id);
+
             if (product is null) {
                 throw new ProductNotFoundException(query.Id);
             }
+
             return new GetProductByIdResult(product);
         }
     }

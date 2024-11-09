@@ -1,3 +1,5 @@
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 //Add services in the container
@@ -12,12 +14,15 @@ builder.Services.AddMediatR(config =>
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 builder.Services.AddMarten(config =>
 {
-    config.Connection(builder.Configuration.GetConnectionString("Database"));   
+    config.Connection(builder.Configuration.GetConnectionString("Database")!);   
 }).UseLightweightSessions();
 
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 if(builder.Environment.IsDevelopment())
     builder.Services.InitializeMartenWith<CatalogInitialData>();
+
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("Database")!);
 
 var app = builder.Build();
 
@@ -26,5 +31,9 @@ var app = builder.Build();
 app.MapCarter();
 
 app.UseExceptionHandler(options => { });
+app.UseHealthChecks("/health",new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.Run();
