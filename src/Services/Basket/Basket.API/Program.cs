@@ -1,15 +1,17 @@
 using Discount.Grpc;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using BuildingBlocks.Messaging.MassTransit;
 using System.Net.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
 //Add Services to pipelines
+var assembly = typeof(Program).Assembly;
 builder.Services.AddCarter();
 builder.Services.AddMediatR(config =>
 {
-    config.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    config.RegisterServicesFromAssembly(assembly);
     config.AddOpenBehavior(typeof(ValidationBehaviors<,>));
     config.AddOpenBehavior(typeof(LoggingBehavior<,>));
 });
@@ -42,6 +44,7 @@ builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(
         return handler;
     });
 
+builder.Services.AddMessageBroker(builder.Configuration);
 builder.Services.AddHealthChecks()
             .AddNpgSql(builder.Configuration.GetConnectionString("Database")!)
             .AddRedis(builder.Configuration.GetConnectionString("Redis")!);
